@@ -46,6 +46,8 @@ import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 
+import org.fourthline.cling.support.model.TransportState;
+
 import butterknife.BindDrawable;
 import butterknife.BindInt;
 import butterknife.BindView;
@@ -118,6 +120,15 @@ public class ChannelDetailActivity extends FullscreenActivity implements
 		@Override
 		public void onDeviceRemoved(RendererDevice device) {
 			invalidateOptionsMenu();
+		}
+
+		@Override
+		public void onDevicePlayStateChanged(RendererDevice device, TransportState transportState) {
+			if (transportState == TransportState.PLAYING) {
+				Log.d(TAG, "renderer is playing right now");
+			} else {
+				Log.d(TAG, "renderer has stopped playing");
+			}
 		}
 	};
 
@@ -366,7 +377,7 @@ public class ChannelDetailActivity extends FullscreenActivity implements
 
 	@Override
 	public void onSendToDeviceSuccess() {
-		finish();
+		//finish();
 	}
 
 	@Override

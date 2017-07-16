@@ -3,6 +3,8 @@ package de.christinecoenen.code.zapp.upnp;
 import android.content.Context;
 import android.widget.ArrayAdapter;
 
+import org.fourthline.cling.support.model.TransportState;
+
 
 class DeviceAdapter extends ArrayAdapter<RendererDevice> implements UpnpService.Listener {
 
@@ -19,5 +21,10 @@ class DeviceAdapter extends ArrayAdapter<RendererDevice> implements UpnpService.
 	@Override
 	public void onDeviceRemoved(RendererDevice device) {
 		notifyDataSetChanged();
+	}
+
+	@Override
+	public void onDevicePlayStateChanged(RendererDevice device, TransportState transportState) {
+
 	}
 }

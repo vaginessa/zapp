@@ -109,7 +109,7 @@ public class DeviceDialog extends AppCompatDialogFragment {
 
 		startLoading();
 
-		upnpService.sendToDevice(device, channel.getStreamUrl(), channel.getName(), new IUpnpCommand.Listener() {
+		upnpService.sendToDevice(device, channel, new IUpnpCommand.Listener() {
 			@Override
 			public void onCommandSuccess() {
 				Log.d(TAG, "sendToDevice - onCommandSuccess listener");

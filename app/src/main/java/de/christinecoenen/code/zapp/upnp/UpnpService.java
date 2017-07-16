@@ -15,12 +15,15 @@ import org.fourthline.cling.model.meta.Service;
 import org.fourthline.cling.model.types.UDAServiceType;
 import org.fourthline.cling.registry.Registry;
 import org.fourthline.cling.registry.RegistryListener;
+import org.fourthline.cling.support.model.TransportState;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.WeakHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import de.christinecoenen.code.zapp.model.ChannelModel;
 
 public class UpnpService extends AndroidUpnpServiceImpl implements RegistryListener {
 
@@ -159,9 +162,43 @@ public class UpnpService extends AndroidUpnpServiceImpl implements RegistryListe
 			return devices;
 		}
 
-		void sendToDevice(RendererDevice device, String videoUrl, String title, IUpnpCommand.Listener listener) {
-			IUpnpCommand command = new SendVideoCommand(upnpService, device, videoUrl, title);
-			command.setListener(listener);
+		void sendToDevice(final RendererDevice device, ChannelModel channel, final IUpnpCommand.Listener listener) {
+			IUpnpCommand command = new SendVideoCommand(upnpService, device, channel.getStreamUrl(), channel.getName());
+			command.setListener(new IUpnpCommand.Listener() {
+				@Override
+				public void onCommandSuccess() {
+					listener.onCommandSuccess();
+					// device should be playing right now - ask for transport info
+					getTransportInfo(device);
+				}
+
+				@Override
+				public void onCommandFailure(String reason) {
+					listener.onCommandFailure(reason);
+				}
+			});
+			command.execute();
+		}
+
+		private void getTransportInfo(final RendererDevice device) {
+			final GetTransportInfoCommand command = new GetTransportInfoCommand(upnpService, device);
+			command.setListener(new IUpnpCommand.Listener() {
+				@Override
+				public void onCommandSuccess() {
+					handler.post(new Runnable() {
+						@Override
+						public void run() {
+							for (Listener listener : listeners.keySet()) {
+								listener.onDevicePlayStateChanged(device, command.getTransportState());
+							}
+						}
+					});
+				}
+
+				@Override
+				public void onCommandFailure(String reason) {
+				}
+			});
 			command.execute();
 		}
 	}
@@ -175,5 +212,6 @@ public class UpnpService extends AndroidUpnpServiceImpl implements RegistryListe
 		@SuppressWarnings("UnusedParameters")
 		void onDeviceRemoved(RendererDevice device);
 
+		void onDevicePlayStateChanged(RendererDevice device, TransportState transportState);
 	}
 }
